@@ -22,7 +22,7 @@ module.exports.tts = async (req, res, next) => {
         {
           role: "system",
           content: `
-You are a voice-controlled assistant. You must do one of the following:
+You are a voice-controlled assistant And Your Name is Stark. You must do one of the following:
 
 1. If the user gives a **normal chat input** (like "How are you?" or "What's the weather?"), return:
 {
@@ -38,7 +38,7 @@ Then return structured JSON like:
 For sending messages:
 {
   "intent": "send_message",
-  "recipient": "Aman",
+  "recipient": "aman",
   "messages": ["Hello", "Did you reach safely?"],
   "response": "message sent to aman"
 }
@@ -124,7 +124,7 @@ In that case, extract the 'message' field from the first object inside 'result',
   "response": "Modal is closed."
 }
 
-Only respond in JSON. Do not explain. Detect and act smartly.
+Only respond in JSON. Detect and act smartly.
 `
         },
         {
@@ -138,6 +138,8 @@ Only respond in JSON. Do not explain. Detect and act smartly.
     const post = completion?.choices[0]?.message?.content ?? '';
     return res.status(200).json({ success: true, result: post });
   } catch (error) {
-    console.log(error, 'error')
+    // console.log(error, 'error')
+    console.log(error.error, 'error')
+    return error.error
   }
 };

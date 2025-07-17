@@ -6,6 +6,7 @@ import { AppDispatch } from '../reduxToolkit/Store';
 import { useDispatch } from 'react-redux';
 import { sendMessage } from '../reduxToolkit/Reducers/Auth.tsx/UsersSlice';
 import Modal from './Modal';
+import { useElevenLabsTTS } from '../Hook/SpeakAI';
 
 interface VoiceChatProps {
     allUsers: Map<string, string>;
@@ -27,6 +28,8 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ allUsers }) => {
     const [status, setStatus] = useState('Say "Tony" to activate');
     const [modal, setModal] = useState(false)
     const [modalData, setModalData] = useState("")
+    const { speakAI, loading, error } = useElevenLabsTTS();
+
     useEffect(() => {
         if (transcript) {
             console.log(transcript, 'transcript')
@@ -42,10 +45,11 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ allUsers }) => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text: command }),
             });
+            console.log(res, 'res')
 
             const data = await res.json();
             let finalResult
-            console.log(data.result, 'data.result')
+            console.log(data, 'data')
             console.log(JSON.parse(data.result), 'data.result2')
 
             if (typeof data.result === "string") {
@@ -67,7 +71,16 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ allUsers }) => {
                     break
 
                 case "send_message":
-                    speakData = sendMessageCase(finalResult, allUsers, userId, socket, dispatch)
+                    const getData = sendMessageCase(finalResult, allUsers, userId, socket, dispatch)
+                    console.log(getData, 'getData')
+                    if (getData.success) {
+                        speakData = getData.response!
+                    } else {
+                        console.log('user not found cmd', getData.response)
+                        if (getData.key === "USER_NOT_FOUND") {
+                            return speakAI(getData.response!)
+                        }
+                    }
                     break;
                 case "check_message":
                     const res = await checkMessageCase(finalResult, allUsers)
@@ -85,7 +98,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ allUsers }) => {
             }
 
             setStatus(`GPT: ${finalResult.response}`);
-            speak(speakData);
+            speakAI(speakData);
 
         } catch (err) {
             console.error('Error calling GPT:', err);
@@ -95,42 +108,23 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ allUsers }) => {
 
 
 
-
-    const speak = async (text: string) => {
-        const synth = window.speechSynthesis;
-        console.log(text, '???')
-        const speakNow = () => {
-            const utterance = new SpeechSynthesisUtterance(text || "Hello, how are you?");
-            utterance.lang = "en-US";
-
-            // Try to use a default English voice
-            const voices = synth.getVoices();
-            const voice = voices.find(v => v.lang === "en-US" && v.name.toLowerCase().includes("google"));
-            if (voice) utterance.voice = voice;
-
-            synth.speak(utterance);
-        };
-
-        // Wait for voices to be loaded
-        if (synth.getVoices().length === 0) {
-            synth.addEventListener("voiceschanged", speakNow);
-        } else {
-            speakNow();
-        }
-    };
-
     const handleModalClose = () => {
         setModal(false)
     }
     const handleModalOpen = () => {
         setModal(true)
     }
-     
+
     return (
         <div className={`absolute z-10 ${isListening ? "w-full" : "w-[45%]"}  right-0`}>
             <Modal open={modal} onClose={handleModalClose} response={modalData} />
-            <button onClick={() => handleCommand("close the modal")}>send</button>
-            <div className="flex items-center  bg-white rounded-lg pl-4 cursor-text">
+            <div className="flex items-center  bg-white rounded-lg pl-4 border cursor-text">
+                <button onClick={() => speakAI("Hello! How can I help you today?")} disabled={loading}>
+                    🔊 Speak
+                </button>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                <button onClick={() => handleCommand("who are you?")}>send</button>
                 {/* <label className="pr-1 cursor-pointer">
                     <svg viewBox="0 0 512 512" className="w-3.5 h-3.5 text-gray-500 fill-current">
                         <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z" />
@@ -141,7 +135,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ allUsers }) => {
                     name="text"
                     id="input"
                     placeholder="Say something..."
-                    className="w-full h-20 outline-none text-sm caret-orange-600 placeholder-gray-500"
+                    className="w-full h-[70px] outline-none text-sm caret-orange-600 placeholder-gray-500"
                     value={status}
                 />
 
@@ -154,15 +148,15 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ allUsers }) => {
 
                 <div className="h-[40%] w-[1.3px] bg-gray-200"></div>
                 {isSupported ? (isListening ? <div className="flex items-center space-x-2">
-                    <button onClick={isListening ? stopListening : startListening} id="micBtn" className="p-3 rounded-full transition relative mic-idle bg-red-50 hover:bg-red-100">
-                        <svg id="micIcon" viewBox="0 0 384 512" className="w-5 h-5 text-red-500 fill-current">
+                    <button onClick={isListening ? stopListening : startListening} id="micBtn" className="p-3 rounded-full transition relative mic-idle bg-blue-50 hover:bg-blue-100">
+                        <svg id="micIcon" viewBox="0 0 384 512" className="w-5 h-5 text-blue-500 fill-current">
                             <path d="M192 0C139 0 96 43 96 96V256c0 53 43 96 96 96s96-43 96-96V96c0-53-43-96-96-96zM64 216c0-13.3-10.7-24-24-24s-24 10.7-24 24v40c0 89.1 66.2 162.7 152 174.4V464H120c-13.3 0-24 10.7-24 24s10.7 24 24 24h72 72c13.3 0 24-10.7 24-24s-10.7-24-24-24H216V430.4c85.8-11.7 152-85.3 152-174.4V216c0-13.3-10.7-24-24-24s-24 10.7-24 24v40c0 70.7-57.3 128-128 128s-128-57.3-128-128V216z" />
                         </svg>
 
                         {/* Glowing animation circle */}
                         <span
                             id="pulse"
-                            className={`absolute inset-0 rounded-full bg-red-300 opacity-40 animate-ping ${isListening ? '' : 'hidden'
+                            className={`absolute inset-0 rounded-full bg-blue-300 opacity-40 animate-ping ${isListening ? '' : 'hidden'
                                 }`}
                         ></span></button>
                 </div>
@@ -224,9 +218,20 @@ const checkMessageCase = async (finalResult: FinalResult, allUsers: Map<string, 
 
 const sendMessageCase = (finalResult: FinalResult, allUsers: Map<string, string>, userId: string, socket: any, dispatch: AppDispatch
 ) => {
-    console.log(finalResult.recipient, 'finalResult.recipient');
-    const recipientId = allUsers.get(finalResult.recipient.trim());
+    let message
+    console.log(finalResult, 'finalResult.recipient??/');
+    const recipientId = allUsers.get(finalResult.recipient.trim()?.toLocaleLowerCase());
     console.log(recipientId, 'recipientId');
+    if (!recipientId) {
+        console.log('command cagain user not found')
+        message = {
+            success: false,
+            key: "USER_NOT_FOUND",
+            response: `${finalResult.recipient} User not found Could you say again `
+        }
+
+        return message
+    }
 
     if (finalResult.intent === "send_message" && recipientId && finalResult.messages.length > 0) {
         finalResult.senderId = userId;
@@ -236,7 +241,12 @@ const sendMessageCase = (finalResult: FinalResult, allUsers: Map<string, string>
             dispatch(sendMessage({ message: msg, id: recipientId! }));
         });
     }
-    return finalResult.response || "Please ask again."
+
+    message = {
+        success: true,
+        response: finalResult.response
+    }
+    return message
 };
 
 

@@ -7,6 +7,8 @@ import io from 'socket.io-client';
 import { AppDispatch } from '../reduxToolkit/Store';
 import { useSocket } from '../socket/Socket';
 import Loading from './Loading';
+import Dp from './Dp';
+import ScrollBackground from './CircleAnimation';
 
 // interface User {
 //     _id: string;
@@ -133,18 +135,6 @@ const RightSideMessage = ({ user }: any) => {
         }
     };
 
-    // Attach the scroll event listener when the component mounts
-    // useEffect(() => {
-    //     console.log('first1')
-
-    //     mainDivOfMessage.current!.addEventListener('scroll', handleScroll);
-    //     console.log('first2')
-
-    //     return () => {
-    //         mainDivOfMessage.current!.removeEventListener('scroll', handleScroll);
-    //     };
-    // }, []);
-
 
     // Fetch more messages when isFetching is true
     useEffect(() => {
@@ -178,22 +168,19 @@ const RightSideMessage = ({ user }: any) => {
             {/* {result.singleChat && result.singleChat.length > 0 ? ( */}
             <div className="lg:col-span-2 lg:block relative ">
                 <div className="w-full h-full  relative flex flex-col">
-
-
-                    <div className="relative flex items-center p-3 border-b  border-gray-300">
-                        <img
-                            className="object-cover w-14 h-14 rounded-full border-sky-500 border-2"
-                            src={user.avatarImage || "https://cdn.pixabay.com/photo/2018/09/12/12/14/man-3672010__340.jpg"}
-                            alt="username"
-                        />
-                        <span className="block ml-2 font-bold text-gray-600">{user.userName}</span>
-                        <span className="absolute w-3 h-3 bg-green-600 rounded-full left-[54px] top-[17px]"></span>
-                    </div>
                     {Object.keys(user).length > 0 ? <>
+                        <div className="relative flex items-center p-3 border-b  border-gray-300">
+                            <Dp name={user?.userName} />
+                            <span className="block ml-2 font-bold text-gray-600">{user.userName}</span>
+                            <span className="absolute w-3 h-3 bg-blue-600 rounded-full left-[50px] top-[17px]"></span>
+                        </div>
+
+
                         <div ref={mainDivOfMessage}
-                            className="relative flex-grow p-6 overflow-y-auto h-[80vh]"
+                            className="relative flex-grow p-6  overflow-y-auto h-[80vh]"
                             id="style-16"
                             onScroll={handleScroll}>
+                     
                             <ul className="space-y-2">
                                 {result?.singleChat?.map((item: MessageItem, i: number) => {
                                     const isSender = item.senderId !== user._id;

@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 // import axios from "axios";
-const base_URL = import.meta.env.VITE_BASE_URL;
+
 export const UserRegisterApi = createAsyncThunk(
   "User/UserRegister",
   async (form: any, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${base_URL}/signup`, {
+      const response = await fetch("http://localhost:13000/signup", {
         // const response = await fetch(base_URL + "/register", {
         method: "POST",
         body: JSON.stringify({
@@ -39,7 +39,7 @@ export const userLoginApi = createAsyncThunk(
   async (form: any, { rejectWithValue }) => {
     try {
       // const response = await fetch(base_URL + "/login", {
-      const response = await fetch(`${base_URL}/logins`, {
+      const response = await fetch("http://localhost:13000/logins", {
         method: "POST",
         body: JSON.stringify({
           username: form.email,
@@ -70,7 +70,7 @@ export const userLoginByGoogleApi = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // const response = await fetch(base_URL + "/login", {
-        const response = await fetch(`${base_URL}/status`, {
+        const response = await fetch('http://localhost:13000/auth/status', {
           credentials: 'include', // Ensure cookies are sent
         });
 

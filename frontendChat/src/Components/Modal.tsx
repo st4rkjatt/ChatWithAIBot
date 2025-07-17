@@ -1,11 +1,11 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 interface ModalProps {
     open: boolean;
     onClose: () => void;
-    response?: ReactNode;
+    response?: string;
 }
 
 const Modal: React.FC<ModalProps> = ({ open, onClose, response }) => {
@@ -53,7 +53,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, response }) => {
                             ),
                         }}
                     >
-                        {cleanText(response)}
+                        {cleanText(response!)}
                     </ReactMarkdown>
 
                 </div>
