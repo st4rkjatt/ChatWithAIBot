@@ -1,20 +1,24 @@
 const axios = require("axios");
-const OpenAI = require('openai')
+const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const path = require("path");
+const elevenLabs = require("elevenlabs-js");
+const fs = require("fs");
+const { aiModel } = require("../modelI");
+elevenLabs.setApiKey("sk_bc0b8e1c1355f6f9f26fd88b68337856041e78f0ff50044b"); // 🔐 Replace with your API key
 
+// sk_e09a6541e32173cd72ca8e08fc7e887b0771dda2a21b987e
 module.exports.tts = async (req, res, next) => {
   try {
-
     let { text } = req.body;
 
-    if (typeof text !== 'string') {
-      text = JSON.stringify(text)
+    if (typeof text !== "string") {
+      text = JSON.stringify(text);
     }
-    console.log(typeof text, text, 'text')
+    console.log(typeof text, text, "text");
     if (!text) {
       return res.status(400).json({ error: "Missing 'text' in request body" });
     }
-
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -111,7 +115,7 @@ In that case, extract the 'message' field from the first object inside 'result',
 
 {
   "intent": "chat",
-  "response": "The last message was Rahul is coming."
+  "response": "The last message was, Rahul is coming."
 }
 
 
@@ -124,22 +128,60 @@ In that case, extract the 'message' field from the first object inside 'result',
   "response": "Modal is closed."
 }
 
+
+
+7.  If the user gives a **voice command** like please silence or mute, return:
+{
+  "intent": "mute",
+  "response": "I am muted now."
+}
+
+
 Only respond in JSON. Detect and act smartly.
-`
+`,
         },
         {
           role: "user",
-          content: text // ← your user's voice transcription
-        }
-      ]
+          content: text, // ← your user's voice transcription
+        },
+      ],
     });
-    console.log(completion, 'completion')
+    console.log(completion, "completion");
 
-    const post = completion?.choices[0]?.message?.content ?? '';
+    const post = completion?.choices[0]?.message?.content ?? "";
     return res.status(200).json({ success: true, result: post });
   } catch (error) {
     // console.log(error, 'error')
-    console.log(error.error, 'error')
-    return error.error
+    console.log(error, "error");
+    return error.error;
+  }
+};
+module.exports.elevenAPITts = async (req, res, next) => {
+  const { text } = req.body;
+
+  if (!text || typeof text !== "string") {
+    return res.status(400).json({ error: "Text is required" });
+  }
+
+  try {
+    console.log("Generating speech for text:", text);
+    const voiceId = "EXAVITQu4vr4xnSDxMaL"; // Rachel
+    const modelId = "eleven_multilingual_v2";
+
+    const result = await elevenLabs.textToSpeech(voiceId, text, modelId, {
+      stability: 0.75,
+      similarity_boost: 0.75,
+      style: 0.5,
+      use_speaker_boost: true,
+    });
+    console.log("TTS Result:", result);
+
+    const stream = await result.pipe;
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Transfer-Encoding", "chunked");
+    stream.pipe(res); // directly pipe the audio stream to client
+  } catch (err) {
+    console.error("❌ TTS Error:", err.message);
+    res.status(500).json({ error: "Failed to generate speech" });
   }
 };

@@ -30,7 +30,7 @@ module.exports.Register = async (req, res, next) => {
     }
     const checkUser = await UserModel.findOne({
       email: { $regex: `^${email}$`, $options: "i" },
-    });
+    }).select("-password");
 
     if (checkUser) {
       return res
@@ -61,7 +61,7 @@ module.exports.Register = async (req, res, next) => {
     res.status(200).json({
       status: true,
       data: {
-        newUser1,
+        ...newUser1,
         token,
       },
       message: "User has created successfully.",

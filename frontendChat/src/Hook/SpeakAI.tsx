@@ -1,53 +1,36 @@
-// hooks/useElevenLabsTTS.ts
-import { useState } from "react";
+// // tts.js or tts.ts if you're using TypeScript
+// import fs from 'fs';
+// import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 
-const ELEVEN_LABS_API_KEY ="sk_e09a6541e32173cd72ca8e08fc7e887b0771dda2a21b987e"; // 🔑 Replace with your actual API key
-const VOICE_ID = "EXAVITQu4vr4xnSDxMaL"; // 👤 Default voice (change to suit your preference)
+// // Replace with your actual API key from https://elevenlabs.io
+// const elevenlabs = new ElevenLabsClient({
+//   apiKey: 'sk_e09a6541e32173cd72ca8e08fc7e887b0771dda2a21b987e', // 🔐 Replace this
+// });
 
-export function useElevenLabsTTS() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// // Function to convert text to speech
+// async function generateSpeech() {
+//   try {
+//     // Choose a voice ID from ElevenLabs (you can find in the dashboard or listVoices API)
+//     const voiceId = 'EXAVITQu4vr4xnSDxMaL'; // Default: Rachel
 
-  const speakAI = async (text: string) => {
-    setLoading(true);
-    setError(null);
+//     const response = await elevenlabs.generate({
+//       voiceId,
+//       text: 'Hello Ajeet! This is a test message using ElevenLabs Text to Speech.',
+//       modelId: 'eleven_monolingual_v1', // or 'eleven_multilingual_v1'
+//       voiceSettings: {
+//         stability: 0.75,
+//         similarityBoost: 0.75
+//       }
+//     });
 
-    try {
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-        {
-          method: "POST",
-          headers: {
-            "xi-api-key": ELEVEN_LABS_API_KEY,
-            "Content-Type": "application/json",
-            "Accept": "audio/mpeg",
-          },
-          body: JSON.stringify({
-            text,
-            model_id: "eleven_monolingual_v1", // or "eleven_multilingual_v2"
-            voice_settings: {
-              stability: 0.5,
-              similarity_boost: 0.75,
-            },
-          }),
-        }
-      );
+//     // Write the response audio buffer to an MP3 file
+//     fs.writeFileSync('output.mp3', Buffer.from(await response.arrayBuffer()));
+//     console.log('✅ Speech generated and saved as output.mp3');
+//   } catch (error) {
+//     console.error('❌ Error generating speech:', error);
+//   }
+// }
 
-      if (!response.ok) {
-        throw new Error("TTS request failed");
-      }
+// generateSpeech();
 
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audio.play();
-    } catch (err: any) {
-      console.error("TTS Error:", err);
-      setError(err.message || "Failed to speak");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  return { speakAI, loading, error };
-}

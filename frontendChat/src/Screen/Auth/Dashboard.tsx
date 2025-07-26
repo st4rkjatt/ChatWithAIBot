@@ -43,7 +43,7 @@ const Dashboard = () => {
     }
   }, [result.result])
 
-  return <CircleAnimation />
+  // return <CircleAnimation />
   return (
     <>
       <ToastContainer />

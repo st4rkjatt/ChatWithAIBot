@@ -2,16 +2,18 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 // import axios from "axios";
 
+const base_URL = import.meta.env.VITE_BASE_URL;
 export const UserRegisterApi = createAsyncThunk(
   "User/UserRegister",
   async (form: any, { rejectWithValue }) => {
     try {
-      const response = await fetch("http://localhost:13000/signup", {
+    
+      const response = await fetch(`${base_URL}/auth/register`, {
         // const response = await fetch(base_URL + "/register", {
         method: "POST",
         body: JSON.stringify({
           userName: form.userName,
-          username: form.email,
+          email: form.email,
           password: form.password,
         }),
         headers: {
@@ -39,10 +41,10 @@ export const userLoginApi = createAsyncThunk(
   async (form: any, { rejectWithValue }) => {
     try {
       // const response = await fetch(base_URL + "/login", {
-      const response = await fetch("http://localhost:13000/logins", {
+      const response = await fetch(`${base_URL}/auth/login`, {
         method: "POST",
         body: JSON.stringify({
-          username: form.email,
+          email: form.email,
           password: form.password,
         }),
         headers: {
@@ -115,8 +117,8 @@ const UserRegister = createSlice({
       state.loading = false;
       state.result = action.payload;
       state.error = null;
-      localStorage.setItem("user", JSON.stringify(action.payload));
-      localStorage.setItem("token", action.payload.user.token);
+      localStorage.setItem("user", JSON.stringify(action.payload.data));
+      localStorage.setItem("token", action.payload.data.token);
       toast.success(action.payload.msg);
     });
     builder.addCase(UserRegisterApi.rejected, (state: any, action: any) => {
@@ -136,9 +138,9 @@ const UserRegister = createSlice({
       state.result = action.payload;
       state.error = null;
 
-      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      localStorage.setItem("user", JSON.stringify(action.payload.data));
       // localStorage.setItem("user", JSON.stringify(action.payload.data));
-      localStorage.setItem("token", action.payload.user.token)
+      localStorage.setItem("token", action.payload.data.token)
       toast.success(action.payload.msg);
     });
     builder.addCase(userLoginApi.rejected, (state: any, action: any) => {

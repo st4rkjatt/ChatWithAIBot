@@ -5,13 +5,13 @@ const ErrorMiddleware = require("./middleware/ErrorMiddleware");
 const PORT = 13000;
 const cors = require("cors");
 const passport = require("passport");
-const { initilizingPassport } = require("./middleware/passwordConfig");
+// const { initilizingPassport } = require("./middleware/passwordConfig");
 const expressSession = require("express-session");
 const { server, app } = require("./socket/socket");
 const flash = require("connect-flash");
 require('dotenv').config();
 connectDB();
-initilizingPassport(passport);
+// initilizingPassport(passport);
 app.use(
   expressSession({ secret: process.env.SECRET, resave: false, saveUninitialized: false })
 );

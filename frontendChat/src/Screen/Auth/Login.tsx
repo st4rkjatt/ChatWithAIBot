@@ -31,6 +31,7 @@ const Login = () => {
   };
 // console.log(params,"paramss")
   useEffect(() => {
+    console.log(result, "result");
     if (result?.result) {
       setTimeout(() => {
         navigate("/dashboard");
